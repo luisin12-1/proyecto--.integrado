@@ -1,0 +1,1021 @@
+' =========================================================
+' 1. VARIABLES GLOBALES E INICIALIZACIÓN
+' =========================================================
+Foco = "a"
+ValA = ""
+ValB = ""
+ValC = ""
+
+' Variables de la calculadora tradicional
+operadorSuma = 0
+operadorResta = 0
+operadorMultiplica = 0
+operadorDivide = 0
+primerNumero = 0
+
+' Control de estado para el módulo universal
+panelVisible = "Falso"
+puedeEscribir = "Falso" 
+
+' Variables del módulo de Sistema 2x2
+paso = 1
+valorActual = ""
+sis_a = 0
+sis_b = 0
+sis_c = 0
+sis_d = 0
+sis_e = 0
+sis_f = 0
+
+' Variable del módulo de Energía
+panelEnergiaIniciado = "Falso"
+
+' Cargar la calculadora original al arrancar
+MostrarCalculadoraOriginal()
+
+' =========================================================
+' 2. VENTANA DE LA CALCULADORA ORIGINAL
+' =========================================================
+Sub MostrarCalculadoraOriginal
+  GraphicsWindow.Clear()
+  GraphicsWindow.Title = "Calculadora Original"
+  GraphicsWindow.Width = 355
+  GraphicsWindow.Height = 525 
+  GraphicsWindow.CanResize = "no"
+  GraphicsWindow.BackgroundColor = "LightGray"
+
+  ' Formas originales
+  GraphicsWindow.BrushColor = "green"
+  GraphicsWindow.FillRectangle (40, 45, 260, 65)
+
+  GraphicsWindow.BrushColor = "gray"
+  GraphicsWindow.FillRectangle (17, 130, 320, 340)
+
+  ' Borde del teclado
+  GraphicsWindow.PenColor = "blue"
+  GraphicsWindow.DrawRectangle (17, 130, 320, 340)
+
+  ' Borde exterior
+  GraphicsWindow.DrawRectangle (10, 15, 335, 470)
+
+  ' Visor de número
+  caja = Controls.AddTextBox(55, 55)
+  Controls.SetSize (caja, 230, 40)
+
+  ' Boton de cuadratica (Ecua2)
+  GraphicsWindow.BrushColor = "#A45A52"
+  BtnCambiarModo = Controls.AddButton("Ecua2", 208, 420)
+  Controls.SetSize(BtnCambiarModo, 60, 45)
+
+  ' Boton para abrir la Calculadora Universal de Ecuaciones
+  GraphicsWindow.BrushColor = "DarkBlue"
+  BtnAbrirUniversal = Controls.AddButton("Ecualin", 146, 420)
+  Controls.SetSize(BtnAbrirUniversal, 60, 45)
+
+  ' Boton para abrir el Sistema de Ecuaciones 2x2
+  GraphicsWindow.BrushColor = "#E28743"
+  BtnAbrirSist2x2 = Controls.AddButton("Sist2x2", 208, 270)
+  Controls.SetSize(BtnAbrirSist2x2, 60, 45)
+
+  ' NUEVO: Boton para abrir la Calculadora de Energía
+  GraphicsWindow.BrushColor = "#2E8B57"
+  BtnAbrirEnergia = Controls.AddButton("Energía", 23, 220)
+  Controls.SetSize(BtnAbrirEnergia, 60, 45)
+
+  ' Color botones normales
+  GraphicsWindow.BrushColor = "blue"
+
+  ' Teclado numérico original
+  uno = Controls.AddButton("1", 23, 370)
+  Controls.SetSize (uno, 60, 45)
+  dos = Controls.AddButton("2", 85, 370)
+  Controls.SetSize (dos, 60, 45)
+  tres = Controls.AddButton("3", 146, 370)
+  Controls.SetSize (tres, 60, 45)
+  cuatro = Controls.AddButton("4", 23, 320)
+  Controls.SetSize (cuatro, 60, 45)
+  cinco = Controls.AddButton("5", 85, 320)
+  Controls.SetSize (cinco, 60, 45)
+  seis = Controls.AddButton("6", 146, 320)
+  Controls.SetSize (seis, 60, 45)
+  siete = Controls.AddButton("7", 23, 270)
+  Controls.SetSize (siete, 60, 45)
+  ocho = Controls.AddButton("8", 85, 270)
+  Controls.SetSize (ocho, 60, 45)
+  nueve = Controls.AddButton("9", 208, 320)
+  Controls.SetSize (nueve, 60, 45)
+  cero = Controls.AddButton("0", 23, 420)
+  Controls.SetSize (cero, 60, 45)
+
+  punto = Controls.AddButton(".", 85, 420)
+  Controls.SetSize (punto, 60, 45)
+
+  sumar = Controls.AddButton("+", 208, 370)
+  Controls.SetSize (sumar, 60, 45)
+  restar = Controls.AddButton("-", 270, 370)
+  Controls.SetSize (restar, 60, 45)
+  
+  ' Reajustados multiplicar y dividir para dar espacio al boton de Energia
+  multiplicar = Controls.AddButton ("x", 270, 270)
+  Controls.SetSize (multiplicar, 60, 45)
+  dividir = Controls.AddButton(" / ", 270, 320)
+  Controls.SetSize (dividir, 60, 45)
+  
+  igual = Controls.AddButton("=", 270, 420)
+  Controls.SetSize (igual, 60, 45)
+  limpiar = Controls.AddButton("AC", 146, 270)
+  Controls.SetSize (limpiar, 60, 45)
+
+  ' Asignar el evento para esta ventana
+  Controls.ButtonClicked = AlPresionarOriginal
+EndSub
+
+' Lógica de eventos de la calculadora original
+Sub AlPresionarOriginal
+  ultimo_boton = Controls.LastClickedButton
+  
+  ' Navegación a otros módulos
+  If ultimo_boton = BtnCambiarModo Then
+    MostrarVentanaCuadratica()
+  EndIf
+  
+  If ultimo_boton = BtnAbrirUniversal Then
+    MostrarVentanaUniversal()
+  EndIf
+
+  If ultimo_boton = BtnAbrirSist2x2 Then
+    paso = 1
+    valorActual = ""
+    sis_a = 0
+    sis_b = 0
+    sis_c = 0
+    sis_d = 0
+    sis_e = 0
+    sis_f = 0
+    InicializarCalculadoraSist2x2()
+  EndIf
+
+  ' Si presiona el nuevo botón de Energía
+  If ultimo_boton = BtnAbrirEnergia Then
+    panelEnergiaIniciado = "Falso"
+    MostrarVentanaEnergia()
+  EndIf
+  
+  ' Lógica del teclado original
+  If ultimo_boton = uno Then
+    contenido_caja = Controls.GetTextBoxText(caja)
+    Controls.SetTextBoxText(caja, Text.Append(contenido_caja, "1"))
+  ElseIf ultimo_boton = dos then
+    contenido_caja = Controls.GetTextBoxText(caja)
+    Controls.SetTextBoxText(caja, Text.Append(contenido_caja, "2"))
+  ElseIf ultimo_boton = tres then
+    contenido_caja = Controls.GetTextBoxText(caja)
+    Controls.SetTextBoxText(caja, Text.Append(contenido_caja, "3"))
+  ElseIf ultimo_boton = cuatro then
+    contenido_caja = Controls.GetTextBoxText(caja)
+    Controls.SetTextBoxText(caja, Text.Append(contenido_caja, "4"))
+  ElseIf ultimo_boton = cinco then
+    contenido_caja = Controls.GetTextBoxText(caja)
+    Controls.SetTextBoxText(caja, Text.Append(contenido_caja, "5"))
+  ElseIf ultimo_boton = seis then
+    contenido_caja = Controls.GetTextBoxText(caja)
+    Controls.SetTextBoxText(caja, Text.Append(contenido_caja, "6"))
+  ElseIf ultimo_boton = siete then
+    contenido_caja = Controls.GetTextBoxText(caja)
+    Controls.SetTextBoxText(caja, Text.Append(contenido_caja, "7"))
+  ElseIf ultimo_boton = ocho then
+    contenido_caja = Controls.GetTextBoxText(caja)
+    Controls.SetTextBoxText(caja, Text.Append(contenido_caja, "8"))
+  ElseIf ultimo_boton = nueve then
+    contenido_caja = Controls.GetTextBoxText(caja)
+    Controls.SetTextBoxText(caja, Text.Append(contenido_caja, "9"))
+  ElseIf ultimo_boton = cero then
+    contenido_caja = Controls.GetTextBoxText(caja)
+    Controls.SetTextBoxText(caja, Text.Append(contenido_caja, "0"))
+  ElseIf ultimo_boton = punto then
+    contenido_caja = Controls.GetTextBoxText(caja)
+    Controls.SetTextBoxText(caja, Text.Append(contenido_caja, "."))
+  ElseIf ultimo_boton = limpiar then
+    Controls.SetTextBoxText(caja, "")
+  ElseIf ultimo_boton = sumar then
+    primerNumero = Controls.GetTextBoxText(caja)
+    Controls.SetTextBoxText(caja, "")
+    operadorSuma = 1
+  ElseIf ultimo_boton = restar then
+    primerNumero = Controls.GetTextBoxText(caja)
+    Controls.SetTextBoxText(caja, "")
+    operadorResta = 1
+  ElseIf ultimo_boton = multiplicar then
+    primerNumero = Controls.GetTextBoxText(caja)
+    Controls.SetTextBoxText(caja, "")
+    operadorMultiplica = 1
+  ElseIf ultimo_boton = dividir then
+    primerNumero = Controls.GetTextBoxText(caja)
+    Controls.SetTextBoxText(caja, "")
+    operadorDivide = 1
+  ElseIf ultimo_boton = igual then
+    segundoNumero = Controls.GetTextBoxText(caja)
+    If operadorSuma = 1 Then
+      resultado = primerNumero + segundoNumero
+      operadorSuma = 0
+    ElseIf operadorResta = 1 Then
+      resultado = primerNumero - segundoNumero
+      operadorResta = 0
+    ElseIf operadorMultiplica = 1 Then
+      resultado = primerNumero * segundoNumero
+      operadorMultiplica = 0
+    ElseIf operadorDivide = 1 Then
+      If segundoNumero <> 0 Then
+        resultado = primerNumero / segundoNumero
+      Else
+        resultado = "Error"
+      EndIf
+      operadorDivide = 0
+    EndIf
+    Controls.SetTextBoxText(caja, resultado)
+  EndIf
+EndSub
+
+' =========================================================
+' 3. MÓDULO CUADRÁTICO
+' =========================================================
+Sub MostrarVentanaCuadratica
+  GraphicsWindow.Clear()
+  GraphicsWindow.Title = "Resolución Cuadrática"
+  GraphicsWindow.Width = 360
+  GraphicsWindow.Height = 460
+
+  ' Fondo LCD Verde
+  GraphicsWindow.BrushColor = "green"
+  GraphicsWindow.FillRectangle (40, 45, 280, 110)
+
+  GraphicsWindow.BrushColor = "Black"
+  TxtA = Shapes.AddText("")
+  TxtB = Shapes.AddText("")
+  TxtC = Shapes.AddText("")
+  TxtLinea1 = Shapes.AddText("Ingrese Coeficientes")
+  TxtLinea2 = Shapes.AddText("")
+  TxtLinea3 = Shapes.AddText("")
+
+  Shapes.Move(TxtA, 50, 50)
+  Shapes.Move(TxtB, 150, 50)
+  Shapes.Move(TxtC, 250, 50)
+  Shapes.Move(TxtLinea1, 50, 80)
+  Shapes.Move(TxtLinea2, 50, 105)
+  Shapes.Move(TxtLinea3, 50, 130)
+
+  GraphicsWindow.BrushColor = "blue"
+  BtnMinus = Controls.AddButton("-", 160, 370)
+  BtnClear = Controls.AddButton("C", 240, 370)
+  Controls.SetSize(BtnMinus, 60, 40)
+  Controls.SetSize(BtnClear, 60, 40)
+
+  GraphicsWindow.BrushColor = "#4A6572"
+  BtnSiguiente = Controls.AddButton("Siguiente ( > )", 80, 170)
+  Controls.SetSize(BtnSiguiente, 110, 35)
+
+  GraphicsWindow.BrushColor = "#A45A52"
+  BotonResolver = Controls.AddButton("RESOLVER", 210, 170)
+  Controls.SetSize(BotonResolver, 110, 35)
+
+  ' Botón para regresar a la calculadora tradicional
+  GraphicsWindow.BrushColor = "gray"
+  BtnRegresar = Controls.AddButton("VOLVER", 20, 170)
+  Controls.SetSize(BtnRegresar, 55, 35)
+
+  GraphicsWindow.BrushColor = "blue"
+  Num1 = Controls.AddButton("1", 40, 230)
+  Num2 = Controls.AddButton("2", 110, 230)
+  Num3 = Controls.AddButton("3", 180, 230)
+  Num4 = Controls.AddButton("4", 40, 275)
+  Num5 = Controls.AddButton("5", 110, 275)
+  Num6 = Controls.AddButton("6", 180, 275)
+  Num7 = Controls.AddButton("7", 40, 320)
+  Num8 = Controls.AddButton("8", 110, 320)
+  Num9 = Controls.AddButton("9", 180, 320)
+  Num0 = Controls.AddButton("0", 40, 365)
+  
+  Controls.SetSize(Num1, 65, 40)
+  Controls.SetSize(Num2, 65, 40)
+  Controls.SetSize(Num3, 65, 40)
+  Controls.SetSize(Num4, 65, 40)
+  Controls.SetSize(Num5, 65, 40)
+  Controls.SetSize(Num6, 65, 40)
+  Controls.SetSize(Num7, 65, 40)
+  Controls.SetSize(Num8, 65, 40)
+  Controls.SetSize(Num9, 65, 40)
+  Controls.SetSize(Num0, 110, 40)
+
+  Controls.ButtonClicked = AlPresionarCuadratica
+  ActualizarPantallaCuadratica()
+EndSub
+
+Sub AlPresionarCuadratica
+  BotonDetectado = Controls.LastClickedButton
+  TextoBoton = Controls.GetButtonCaption(BotonDetectado)
+  
+  If BotonDetectado = BtnRegresar Then
+    MostrarCalculadoraOriginal()
+  EndIf
+
+  If BotonDetectado = BtnSiguiente Then
+    If Foco = "a" Then
+      Foco = "b"
+    ElseIf Foco = "b" Then
+      Foco = "c"
+    Else
+      Foco = "a"
+    EndIf
+    ActualizarPantallaCuadratica()
+  EndIf
+  
+  If TextoBoton = "0" Or TextoBoton = "1" Or TextoBoton = "2" Or TextoBoton = "3" Or TextoBoton = "4" Or TextoBoton = "5" Or TextoBoton = "6" Or TextoBoton = "7" Or TextoBoton = "8" Or TextoBoton = "9" Or TextoBoton = "-" Then
+    If Foco = "a" Then
+      If Text.GetLength(ValA) < 5 Then
+        ValA = Text.Append(ValA, TextoBoton)
+      EndIf
+    ElseIf Foco = "b" Then
+      If Text.GetLength(ValB) < 5 Then
+        ValB = Text.Append(ValB, TextoBoton)
+      EndIf
+    ElseIf Foco = "c" Then
+      If Text.GetLength(ValC) < 5 Then
+        ValC = Text.Append(ValC, TextoBoton)
+      EndIf
+    EndIf
+    ActualizarPantallaCuadratica()
+  EndIf
+  
+  If BotonDetectado = BtnClear Then
+    If Foco = "a" Then
+      ValA = ""
+    ElseIf Foco = "b" Then
+      ValB = ""
+    ElseIf Foco = "c" Then
+      ValC = ""
+    EndIf
+    ActualizarPantallaCuadratica()
+    Shapes.SetText(TxtLinea2, "")
+    Shapes.SetText(TxtLinea3, "")
+  EndIf
+  
+  If BotonDetectado = BotonResolver Then
+    a = ValA
+    b = ValB
+    c = ValC
+    
+    If a = "" Then
+      a = 0
+    EndIf
+    If b = "" Then
+      b = 0
+    EndIf
+    If c = "" Then
+      c = 0
+    EndIf
+    
+    Shapes.SetText(TxtLinea1, a + "x² + (" + b + ")x + (" + c + ") = 0")
+    
+    If a = 0 Then
+      Shapes.SetText(TxtLinea2, "ERROR: 'a' no puede ser 0")
+      Shapes.SetText(TxtLinea3, "")
+    Else
+      discriminante = (b * b) - (4 * a * c)
+      
+      If discriminante >= 0 Then
+        raizDisc = Math.SquareRoot(discriminante)
+        x1Crudo = (-b + raizDisc) / (2 * a)
+        x2Crudo = (-b - raizDisc) / (2 * a)
+        
+        x1 = Math.Round(x1Crudo * 100) / 100
+        x2 = Math.Round(x2Crudo * 100) / 100
+        
+        Shapes.SetText(TxtLinea2, "x1 = " + x1)
+        Shapes.SetText(TxtLinea3, "x2 = " + x2)
+      Else
+        parteRealCruda = -b / (2 * a)
+        parteImaginariaCruda = Math.SquareRoot(-discriminante) / (2 * a)
+        
+        parteReal = Math.Round(parteRealCruda * 100) / 100
+        parteImaginaria = Math.Round(parteImaginariaCruda * 100) / 100
+        
+        Shapes.SetText(TxtLinea2, "x1 = " + parteReal + " + " + parteImaginaria + "i")
+        Shapes.SetText(TxtLinea3, "x2 = " + parteReal + " - " + parteImaginaria + "i")
+      EndIf
+    EndIf
+  EndIf
+EndSub
+
+Sub ActualizarPantallaCuadratica
+  LabelA = " a : "
+  LabelB = " b : "
+  LabelC = " c : "
+  
+  If Foco = "a" Then
+    LabelA = "[a]: "
+  ElseIf Foco = "b" Then
+    LabelB = "[b]: "
+  ElseIf Foco = "c" Then
+    LabelC = "[c]: "
+  EndIf
+  
+  Shapes.SetText(TxtA, LabelA + ValA)
+  Shapes.SetText(TxtB, LabelB + ValB)
+  Shapes.SetText(TxtC, LabelC + ValC)
+EndSub
+
+' =========================================================
+' 4. MÓDULO CALCULADORA UNIVERSAL DE ECUACIONES
+' =========================================================
+Sub MostrarVentanaUniversal
+  panelVisible = "Falso"
+  puedeEscribir = "Falso"
+
+  GraphicsWindow.Clear()
+  GraphicsWindow.Title = "Calculadora Universal de Ecuaciones"
+  GraphicsWindow.Width = 520
+  GraphicsWindow.Height = 480
+  GraphicsWindow.BackgroundColor = "White"
+
+  ' --- EL BOTÓN PRINCIPAL ---
+  GraphicsWindow.BrushColor = "DarkBlue"
+  btnAbrirCalculadora = Controls.AddButton("Abrir Calculadora de Ecuaciones", 20, 20)
+  Controls.SetSize(btnAbrirCalculadora, 250, 40)
+
+  GraphicsWindow.BrushColor = "gray"
+  btnVolverDeUniversal = Controls.AddButton("VOLVER", 290, 20)
+  Controls.SetSize(btnVolverDeUniversal, 100, 40)
+
+  Controls.ButtonClicked = AlHacerClicUniversal
+EndSub
+
+Sub AlHacerClicUniversal
+  botonPresionado = Controls.LastClickedButton
+  textoActual = Controls.GetTextBoxText(cajaTexto)
+  
+  If botonPresionado = btnVolverDeUniversal Then
+    MostrarCalculadoraOriginal()
+  EndIf
+
+  If botonPresionado = btnAbrirCalculadora And panelVisible = "Falso" Then
+    CrearPanelCalculadora()
+    panelVisible = "Verdadero" 
+  EndIf
+  
+  If botonPresionado = btnLimpiar Then
+    Controls.SetTextBoxText(cajaTexto, "")
+    puedeEscribir = "Falso" 
+  EndIf
+  
+  If botonPresionado = btnActivar Then
+    puedeEscribir = "Verdadero"
+  EndIf
+  
+  If puedeEscribir = "Verdadero" Then
+    If botonPresionado = btn0 Then
+      Controls.SetTextBoxText(cajaTexto, textoActual + "0")
+    ElseIf botonPresionado = btn1 Then
+      Controls.SetTextBoxText(cajaTexto, textoActual + "1")
+    ElseIf botonPresionado = btn2 Then
+      Controls.SetTextBoxText(cajaTexto, textoActual + "2")
+    ElseIf botonPresionado = btn3 Then
+      Controls.SetTextBoxText(cajaTexto, textoActual + "3")
+    ElseIf botonPresionado = btn4 Then
+      Controls.SetTextBoxText(cajaTexto, textoActual + "4")
+    ElseIf botonPresionado = btn5 Then
+      Controls.SetTextBoxText(cajaTexto, textoActual + "5")
+    ElseIf botonPresionado = btn6 Then
+      Controls.SetTextBoxText(cajaTexto, textoActual + "6")
+    ElseIf botonPresionado = btn7 Then
+      Controls.SetTextBoxText(cajaTexto, textoActual + "7")
+    ElseIf botonPresionado = btn8 Then
+      Controls.SetTextBoxText(cajaTexto, textoActual + "8")
+    ElseIf botonPresionado = btn9 Then
+      Controls.SetTextBoxText(cajaTexto, textoActual + "9")
+    ElseIf botonPresionado = btnX Then
+      Controls.SetTextBoxText(cajaTexto, textoActual + "x")
+    ElseIf botonPresionado = btnMas Then
+      Controls.SetTextBoxText(cajaTexto, textoActual + "+")
+    ElseIf botonPresionado = btnMenos Then 
+      Controls.SetTextBoxText(cajaTexto, textoActual + "-")
+    ElseIf botonPresionado = btnDiagonal Then 
+      Controls.SetTextBoxText(cajaTexto, textoActual + "/")
+    ElseIf botonPresionado = btnIgual Then
+      Controls.SetTextBoxText(cajaTexto, textoActual + "=")
+    EndIf
+  EndIf
+  
+  If botonPresionado = btnResolver Then
+    ecuacion = Text.ConvertToLowerCase(Controls.GetTextBoxText(cajaTexto))
+    posIgual = Text.GetIndexOf(ecuacion, "=")
+    
+    If posIgual > 1 And Text.GetIndexOf(ecuacion, "x") > 0 Then
+      miembroIzq = Text.GetSubText(ecuacion, 1, posIgual - 1)
+      miembroDer = Text.GetSubTextToEnd(ecuacion, posIgual + 1)
+      
+      textoMiembro = miembroIzq
+      ProcesarMiembro()
+      acumX_Izq = acumX
+      acumNum_Izq = acumNum
+      
+      textoMiembro = miembroDer
+      ProcesarMiembro()
+      acumX_Der = acumX
+      acumNum_Der = acumNum
+      
+      A_lin = acumX_Izq - acumX_Der
+      B_lin = acumNum_Der - acumNum_Izq
+      
+      If A_lin <> 0 Then
+        resultadoXCrudo = B_lin / A_lin
+        resultadoX = Math.Round(resultadoXCrudo * 100) / 100
+        GraphicsWindow.ShowMessage("El valor de x es: " + resultadoX, "Resultado Exitoso")
+      Else
+        If B_lin = 0 Then
+          GraphicsWindow.ShowMessage("La ecuación tiene infinitas soluciones (Identidad).", "Resultado")
+        Else
+          GraphicsWindow.ShowMessage("La ecuación no tiene solución (Inconsistente).", "Sin Solución")
+        EndIf
+      EndIf
+    Else
+      GraphicsWindow.ShowMessage("Formato inválido. Asegúrate de incluir la variable 'x' y un signo '='.", "Error de Formato")
+    EndIf
+    puedeEscribir = "Falso"
+  EndIf
+EndSub
+
+Sub ProcesarMiembro
+  acumX = 0
+  acumNum = 0
+  len = Text.GetLength(textoMiembro)
+  
+  posActual = 1
+  While posActual <= len
+    signo = 1
+    char = Text.GetSubText(textoMiembro, posActual, 1)
+    If char = "+" Then
+      posActual = posActual + 1
+    ElseIf char = "-" Then
+      signo = -1
+      posActual = posActual + 1
+    EndIf
+    
+    inicioTermino = posActual
+    Mientras = "Verdadero"
+    While Mientras = "Verdadero" And posActual <= len
+      c_char = Text.GetSubText(textoMiembro, posActual, 1)
+      If c_char = "+" Or c_char = "-" Then
+        Mientras = "Falso"
+      Else
+        posActual = posActual + 1
+      EndIf
+    EndWhile
+    termino = Text.GetSubText(textoMiembro, inicioTermino, posActual - inicioTermino)
+    
+    tieneX = "Falso"
+    If Text.GetIndexOf(termino, "x") > 0 Then
+      tieneX = "Verdadero"
+      posXEnTermino = Text.GetIndexOf(termino, "x")
+      izqX = Text.GetSubText(termino, 1, posXEnTermino - 1)
+      derX = Text.GetSubTextToEnd(termino, posXEnTermino + 1)
+      termino = izqX + derX
+    EndIf
+    
+    posD = Text.GetIndexOf(termino, "/")
+    If posD > 0 Then
+      numPart = Text.GetSubText(termino, 1, posD - 1)
+      denPart = Text.GetSubTextToEnd(termino, posD + 1)
+      
+      If numPart = "" Then
+        numPart = 1
+      EndIf
+      If denPart = 0 Or denPart = "" Then
+        denPart = 1
+      EndIf
+      valorTermino = numPart / denPart
+    Else
+      If termino = "" Then
+        valorTermino = 1
+      Else
+        valorTermino = termino + 0
+      EndIf
+    EndIf
+    
+    valorTermino = valorTermino * signo
+    If tieneX = "Verdadero" Then
+      acumX = acumX + valorTermino
+    Else
+      acumNum = acumNum + valorTermino
+    EndIf
+  EndWhile
+EndSub
+
+Sub CrearPanelCalculadora
+  GraphicsWindow.BrushColor = "LightGray"
+  GraphicsWindow.FillRectangle(20, 80, 460, 350)
+  
+  GraphicsWindow.BrushColor = "Black"
+  GraphicsWindow.DrawText(30, 95, "Ejemplos: 2x+3x-1/2=4x+5  o  1/3x-2=x/2+4")
+  
+  cajaTexto = Controls.AddTextBox(30, 120)
+  Controls.SetSize(cajaTexto, 310, 30)
+  
+  btnLimpiar = Controls.AddButton("Limpiar", 355, 120)
+  Controls.SetSize(btnLimpiar, 100, 30)
+  
+  btnActivar = Controls.AddButton("1. Activar Entrada", 30, 170)
+  Controls.SetSize(btnActivar, 150, 35)
+  
+  btnResolver = Controls.AddButton("2. Resolver", 30, 220)
+  Controls.SetSize(btnResolver, 150, 35)
+  
+  btn7 = Controls.AddButton("7", 230, 170)
+  btn8 = Controls.AddButton("8", 275, 170)
+  btn9 = Controls.AddButton("9", 320, 170)
+  btnX = Controls.AddButton("x", 365, 170)
+  
+  btn4 = Controls.AddButton("4", 230, 215)
+  btn5 = Controls.AddButton("5", 275, 215)
+  btn6 = Controls.AddButton("6", 320, 215)
+  btnMas = Controls.AddButton("+", 365, 215)
+  
+  btn1 = Controls.AddButton("1", 230, 260)
+  btn2 = Controls.AddButton("2", 275, 260)
+  btn3 = Controls.AddButton("3", 320, 260)
+  btnMenos = Controls.AddButton("-", 365, 260)
+  
+  btn0 = Controls.AddButton("0", 230, 305)
+  btnDiagonal = Controls.AddButton("/", 275, 305)
+  btnIgual = Controls.AddButton("=", 320, 305)
+  
+  Controls.SetSize(btn7, 40, 40)
+  Controls.SetSize(btn8, 40, 40)
+  Controls.SetSize(btn9, 40, 40)
+  Controls.SetSize(btnX, 40, 40)
+  
+  Controls.SetSize(btn4, 40, 40)
+  Controls.SetSize(btn5, 40, 40)
+  Controls.SetSize(btn6, 40, 40)
+  Controls.SetSize(btnMas, 40, 40)
+  
+  Controls.SetSize(btn1, 40, 40)
+  Controls.SetSize(btn2, 40, 40)
+  Controls.SetSize(btn3, 40, 40)
+  Controls.SetSize(btnMenos, 40, 40)
+  
+  Controls.SetSize(btn0, 40, 40)
+  Controls.SetSize(btnDiagonal, 40, 40)
+  Controls.SetSize(btnIgual, 85, 40)
+EndSub
+
+' =========================================================
+' 5. MÓDULO SISTEMA DE ECUACIONES 2X2
+' =========================================================
+Sub InicializarCalculadoraSist2x2
+  GraphicsWindow.Clear()
+  GraphicsWindow.Title = "Calculadora 2x2 Interactiva"
+  GraphicsWindow.Width = 360
+  GraphicsWindow.Height = 480
+  GraphicsWindow.BackgroundColor = "#1E1E24"
+   
+  ' --- DISEÑO DEL VISOR ---
+  GraphicsWindow.BrushColor = "#2D3142"
+  GraphicsWindow.FillRectangle(20, 20, 320, 80)
+
+  GraphicsWindow.FontName = "Courier New"
+  GraphicsWindow.FontBold = "True"
+
+  GraphicsWindow.FontSize = 12
+  GraphicsWindow.BrushColor = "#4F5D75"
+  txtEcuaciones = Shapes.AddText("1) ax+by=c  |  2) dx+ey=f")
+  Shapes.Move(txtEcuaciones, 30, 30)
+
+  GraphicsWindow.FontSize = 18
+  GraphicsWindow.BrushColor = "#FFFFFF"
+  txtIngreso = Shapes.AddText("Ingrese a -> ")
+  Shapes.Move(txtIngreso, 30, 60)
+
+  ' --- BOTONES DE LA CALCULADORA ---
+  GraphicsWindow.FontSize = 16
+  GraphicsWindow.BrushColor = "#000000"
+
+  b7 = Controls.AddButton("7", 20, 120)
+  Controls.SetSize(b7, 65, 50)
+  b8 = Controls.AddButton("8", 100, 120)
+  Controls.SetSize(b8, 65, 50)
+  b9 = Controls.AddButton("9", 180, 120)
+  Controls.SetSize(b9, 65, 50)
+  bC = Controls.AddButton("C", 260, 120)
+  Controls.SetSize(bC, 80, 50)
+
+  b4 = Controls.AddButton("4", 20, 185)
+  Controls.SetSize(b4, 65, 50)
+  b5 = Controls.AddButton("5", 100, 185)
+  Controls.SetSize(b5, 65, 50)
+  b6 = Controls.AddButton("6", 180, 185)
+  Controls.SetSize(b6, 65, 50)
+  bMenos = Controls.AddButton("-", 260, 185)
+  Controls.SetSize(bMenos, 80, 50)
+
+  b1 = Controls.AddButton("1", 20, 250)
+  Controls.SetSize(b1, 65, 50)
+  b2 = Controls.AddButton("2", 100, 250)
+  Controls.SetSize(b2, 65, 50)
+  b3 = Controls.AddButton("3", 180, 250)
+  Controls.SetSize(b3, 65, 50)
+  bPunto = Controls.AddButton(".", 260, 250)
+  Controls.SetSize(bPunto, 80, 50)
+
+  b0 = Controls.AddButton("0", 20, 315)
+  Controls.SetSize(b0, 145, 50)
+
+  bNext = Controls.AddButton("SIGUIENTE", 180, 315)
+  Controls.SetSize(bNext, 160, 50)
+  
+  GraphicsWindow.BrushColor = "gray"
+  bVolverSist = Controls.AddButton("VOLVER", 20, 380)
+  Controls.SetSize(bVolverSist, 320, 45)
+
+  Controls.ButtonClicked = AlPresionarBotonSist2x2
+  ActualizarPantallaSist2x2()
+EndSub
+
+Sub AlPresionarBotonSist2x2
+  ultimoBotonSist = Controls.LastClickedButton
+  
+  If ultimoBotonSist = bVolverSist Then
+    MostrarCalculadoraOriginal()
+  Else
+    boton = Controls.GetButtonCaption(ultimoBotonSist)
+   
+    If boton = "C" Then
+      paso = 1
+      valorActual = ""
+      sis_a = 0
+      sis_b = 0
+      sis_c = 0
+      sis_d = 0
+      sis_e = 0
+      sis_f = 0
+      Controls.SetButtonCaption(bNext, "SIGUIENTE")
+      ActualizarPantallaSist2x2()
+       
+    ElseIf boton = "-" Then
+      If Text.StartsWith(valorActual, "-") Then
+        valorActual = Text.GetSubText(valorActual, 2, Text.GetLength(valorActual))
+      Else
+        valorActual = "-" + valorActual
+      EndIf
+      ActualizarPantallaSist2x2()
+       
+    ElseIf boton = "SIGUIENTE" Or boton = "RESOLVER" Then
+      If valorActual = "" Or valorActual = "-" Then
+        valorActual = "0"
+      EndIf
+       
+      If paso = 1 Then
+        sis_a = valorActual
+      ElseIf paso = 2 Then
+        sis_b = valorActual
+      ElseIf paso = 3 Then
+        sis_c = valorActual
+      ElseIf paso = 4 Then
+        sis_d = valorActual
+      ElseIf paso = 5 Then
+        sis_e = valorActual
+      ElseIf paso = 6 Then
+        sis_f = valorActual
+      EndIf
+       
+      valorActual = ""
+      paso = paso + 1
+      ActualizarPantallaSist2x2()
+       
+      If paso = 7 Then
+        ResolverSistema2x2()
+      EndIf
+       
+    Else
+      If boton <> "VOLVER" Then
+        valorActual = Text.Append(valorActual, boton)
+        ActualizarPantallaSist2x2()
+      EndIf
+    EndIf
+  EndIf
+EndSub
+
+Sub ActualizarPantallaSist2x2
+  eq1 = sis_a + "x + " + sis_b + "y = " + sis_c
+  eq2 = sis_d + "x + " + sis_e + "y = " + sis_f
+  Shapes.SetText(txtEcuaciones, "1) " + eq1 + " | 2) " + eq2)
+   
+  If paso = 1 Then
+    Shapes.SetText(txtIngreso, "Ingrese a -> " + valorActual)
+  ElseIf paso = 2 Then
+    Shapes.SetText(txtIngreso, "Ingrese b -> " + valorActual)
+  ElseIf paso = 3 Then
+    Shapes.SetText(txtIngreso, "Ingrese c -> " + valorActual)
+  ElseIf paso = 4 Then
+    Shapes.SetText(txtIngreso, "Ingrese d -> " + valorActual)
+  ElseIf paso = 5 Then
+    Shapes.SetText(txtIngreso, "Ingrese e -> " + valorActual)
+  ElseIf paso = 6 Then
+    Shapes.SetText(txtIngreso, "Ingrese f -> " + valorActual)
+  Else
+    Controls.SetButtonCaption(bNext, "RESOLVER")
+  EndIf
+EndSub
+
+Sub ResolverSistema2x2
+  determinanteSist = (sis_a * sis_e) - (sis_b * sis_d)
+   
+  If determinanteSist = 0 Then
+    GraphicsWindow.ShowMessage("El sistema no tiene solución única (Determinante = 0)", "Sin Solución")
+  Else
+    xCrudo = ((sis_c * sis_e) - (sis_b * sis_f)) / determinanteSist
+    yCrudo = ((sis_a * sis_f) - (sis_c * sis_d)) / determinanteSist
+     
+    solX = Math.Round(xCrudo * 100) / 100
+    solY = Math.Round(yCrudo * 100) / 100
+     
+    GraphicsWindow.ShowMessage("Solución encontrada:" + Text.GetCharacter(10) + "x = " + solX + Text.GetCharacter(10) + "y = " + solY, "Resultado")
+  EndIf
+  
+  paso = 1
+  valorActual = ""
+  ActualizarPantallaSist2x2()
+EndSub
+
+' =========================================================
+' 6. NUEVO MÓDULO: CALCULADORA DE CONSERVACIÓN DE ENERGÍA
+' =========================================================
+Sub MostrarVentanaEnergia
+  GraphicsWindow.Clear()
+  GraphicsWindow.Title = "Conservación de la Energía con Teclado"
+  GraphicsWindow.Width = 650
+  GraphicsWindow.Height = 480
+  GraphicsWindow.BackgroundColor = "LightBlue"
+  
+  ' Cuadros de entrada y etiquetas
+  GraphicsWindow.BrushColor = "Black"
+  GraphicsWindow.FontSize = 12
+  GraphicsWindow.DrawText(20, 30, "Masa (kg):")
+  txtMasa = Controls.AddTextBox(150, 25)
+
+  GraphicsWindow.DrawText(20, 70, "Velocidad (m/s):")
+  txtVelocidad = Controls.AddTextBox(150, 65)
+
+  GraphicsWindow.DrawText(20, 110, "Altura (m):")
+  txtAltura = Controls.AddTextBox(150, 105)
+
+  GraphicsWindow.DrawText(20, 150, "Constante K (N/m):")
+  txtK = Controls.AddTextBox(150, 145)
+
+  GraphicsWindow.DrawText(20, 190, "Deformación X (m):")
+  txtX = Controls.AddTextBox(150, 185)
+
+  ' Botón para ejecutar las fórmulas físicas
+  btnCalcular = Controls.AddButton("Calcular Energía Total", 23, 230)
+
+  ' Botón para Volver a la calculadora original
+  GraphicsWindow.BrushColor = "gray"
+  btnVolverDeEnergia = Controls.AddButton("VOLVER", 70, 370)
+  Controls.SetSize(btnVolverDeEnergia, 145, 30)
+
+  ' Área para los resultados de energía
+  GraphicsWindow.BrushColor = "DarkBlue"
+  lblResultado = Shapes.AddText("")
+  Shapes.Move(lblResultado, 20, 270)
+  
+  ' Variable para saber en qué cuadro estamos escribiendo (empieza en Masa)
+  CuadroActivo = txtMasa 
+  
+  ' DIBUJAR EL TECLADO EN PANTALLA (Lado derecho, X >= 350)
+  GraphicsWindow.BrushColor = "Black"
+  GraphicsWindow.DrawText(350, 25, "TECLADO NUMÉRICO TÁCTIL:")
+  
+  btn7 = Controls.AddButton("7", 350, 60)
+  btn8 = Controls.AddButton("8", 400, 60)
+  btn9 = Controls.AddButton("9", 450, 60)
+  
+  btn4 = Controls.AddButton("4", 350, 100)
+  btn5 = Controls.AddButton("5", 400, 100)
+  btn6 = Controls.AddButton("6", 450, 100)
+  
+  btn1 = Controls.AddButton("1", 350, 140)
+  btn2 = Controls.AddButton("2", 400, 140)
+  btn3 = Controls.AddButton("3", 450, 140)
+  
+  btn0 = Controls.AddButton("0", 350, 180)
+  btnPunto = Controls.AddButton(".", 400, 180)
+  btnMenos = Controls.AddButton("-", 450, 180)
+  
+  btnBorrar = Controls.AddButton("Borrar Todo", 350, 220)
+  Controls.SetSize(btnBorrar, 135, 30)
+  
+  ' Botones selectores para saber dónde escribir
+  GraphicsWindow.DrawText(350, 275, "Selecciona dónde escribir:")
+  selMasa = Controls.AddButton("Masa", 350, 300)
+  selVel = Controls.AddButton("Velocidad", 410, 300)
+  selAlt = Controls.AddButton("Altura", 495, 300)
+  selK   = Controls.AddButton("Constante K", 350, 340)
+  selX   = Controls.AddButton("Deformación X", 450, 340)
+
+  panelEnergiaIniciado = "Verdadero"
+  Controls.ButtonClicked = AlHacerClicEnergia
+EndSub
+
+Sub AlHacerClicEnergia
+  BotonPresionado = Controls.LastClickedButton
+  
+  ' Botón Volver
+  If BotonPresionado = btnVolverDeEnergia Then
+    panelEnergiaIniciado = "Falso"
+    MostrarCalculadoraOriginal()
+  EndIf
+  
+  ' Logica de los selectores de cuadro activo
+  If BotonPresionado = selMasa Then
+    CuadroActivo = txtMasa
+  ElseIf BotonPresionado = selVel Then
+    CuadroActivo = txtVelocidad
+  ElseIf BotonPresionado = selAlt Then
+    CuadroActivo = txtAltura
+  ElseIf BotonPresionado = selK Then
+    CuadroActivo = txtK
+  ElseIf BotonPresionado = selX Then
+    CuadroActivo = txtX
+  EndIf
+  
+  ' Lógica de las teclas numéricas táctiles
+  TextoActual = Controls.GetTextBoxText(CuadroActivo)
+  CarácterPresionado = ""
+  
+  If BotonPresionado = btn1 Then
+    CarácterPresionado = "1"
+  ElseIf BotonPresionado = btn2 Then
+    CarácterPresionado = "2"
+  ElseIf BotonPresionado = btn3 Then
+    CarácterPresionado = "3"
+  ElseIf BotonPresionado = btn4 Then
+    CarácterPresionado = "4"
+  ElseIf BotonPresionado = btn5 Then
+    CarácterPresionado = "5"
+  ElseIf BotonPresionado = btn6 Then
+    CarácterPresionado = "6"
+  ElseIf BotonPresionado = btn7 Then
+    CarácterPresionado = "7"
+  ElseIf BotonPresionado = btn8 Then
+    CarácterPresionado = "8"
+  ElseIf BotonPresionado = btn9 Then
+    CarácterPresionado = "9"
+  ElseIf BotonPresionado = btn0 Then
+    CarácterPresionado = "0"
+  ElseIf BotonPresionado = btnPunto Then
+    CarácterPresionado = "."
+  ElseIf BotonPresionado = btnMenos Then
+    If TextoActual = "" Then
+      CarácterPresionado = "-"
+    EndIf
+  ElseIf BotonPresionado = btnBorrar Then
+    Controls.SetTextBoxText(CuadroActivo, "")
+  EndIf
+  
+  If CarácterPresionado <> "" Then
+    NuevoTexto = Text.Append(TextoActual, CarácterPresionado)
+    Controls.SetTextBoxText(CuadroActivo, NuevoTexto)
+  EndIf
+  
+  ' Cálculo de fórmulas físicas
+  If BotonPresionado = btnCalcular Then
+    m = Controls.GetTextBoxText(txtMasa)
+    v = Controls.GetTextBoxText(txtVelocidad)
+    h = Controls.GetTextBoxText(txtAltura)
+    k = Controls.GetTextBoxText(txtK)
+    x = Controls.GetTextBoxText(txtX)
+    
+    g = 9.81 ' Constante de gravedad
+    
+    ' Fórmulas físicas de energía
+    Ec = 0.5 * m * Math.Power(v, 2)
+    Eg = m * g * h
+    Ee = 0.5 * k * Math.Power(x, 2)
+    Em = Ec + Eg + Ee
+    
+    ' Redondear a dos decimales para una salida limpia
+    Ec = Math.Round(Ec * 100) / 100
+    Eg = Math.Round(Eg * 100) / 100
+    Ee = Math.Round(Ee * 100) / 100
+    Em = Math.Round(Em * 100) / 100
+
+    ' Mostrar reporte en la pantalla
+    TextoResultado = "--- RESULTADOS ---" + Text.GetCharacter(10)
+    TextoResultado = TextoResultado + "E. Cinética (Ec): " + Ec + " J" + Text.GetCharacter(10)
+    TextoResultado = TextoResultado + "E. Gravitacional (Eg): " + Eg + " J" + Text.GetCharacter(10)
+    TextoResultado = TextoResultado + "E. Elástica (Ee): " + Ee + " J" + Text.GetCharacter(10)
+    TextoResultado = TextoResultado + "----------------------------" + Text.GetCharacter(10)
+    TextoResultado = TextoResultado + "Energía Mecánica Total (Em): " + Em + " Joules"
+    
+    Shapes.SetText(lblResultado, TextoResultado)
+  EndIf
+EndSub
