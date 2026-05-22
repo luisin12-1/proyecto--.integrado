@@ -81,14 +81,14 @@ Sub MostrarCalculadoraOriginal
 
   ' Boton para abrir el Módulo de Energía ORIGINAL (Verde)
   GraphicsWindow.BrushColor = "#2E8B57"
-  BtnAbrirEnergia = Controls.AddButton("Energía", 23, 220)
-  Controls.SetSize(BtnAbrirEnergia, 60, 45)
+  BtnAbrirEnergia = Controls.AddButton("Energía", 23, 223)
+  Controls.SetSize(BtnAbrirEnergia, 308, 45)
 
   ' Boton para abrir el NUEVO Módulo de Energía v2 (Gris Oscuro)
   GraphicsWindow.BrushColor = "#333333"
   GraphicsWindow.FontSize = 12
-  BtnAbrirEnergiaV2 = Controls.AddButton("Energía v2 (Consola)", 23, 490)
-  Controls.SetSize(BtnAbrirEnergiaV2, 310, 40)
+  BtnAbrirEnergiaV2 = Controls.AddButton("Energía v2 (Consola)", 23  , 160)
+  Controls.SetSize(BtnAbrirEnergiaV2, 308, 45)
 
   ' Color botones normales de la calculadora
   GraphicsWindow.BrushColor = "blue"
