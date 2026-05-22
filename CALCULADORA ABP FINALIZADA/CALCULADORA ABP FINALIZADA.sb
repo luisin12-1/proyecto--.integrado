@@ -1,4 +1,5 @@
 ' Jorge Reyes, Luis Polanco, Gerardo Torres.
+' =========================================================
 ' 1. VARIABLES GLOBALES E INICIALIZACIÓN
 ' =========================================================
 Foco = "a"
@@ -29,6 +30,9 @@ sis_f = 0
 
 ' Variable del módulo de Energía
 panelEnergiaIniciado = "Falso"
+
+' NUEVO: Variables de control de despeje para el Módulo de Energía
+ModoEnergia = "Calcular" ' Modos posibles: Calcular, DespejarM, DespejarV, DespejarK, DespejarX
 
 ' Cargar la calculadora original al arrancar
 MostrarCalculadoraOriginal()
@@ -155,9 +159,10 @@ Sub AlPresionarOriginal
     InicializarCalculadoraSist2x2()
   EndIf
 
-  ' Si presiona el nuevo botón de Energía
+  ' Si presiona el botón de Energía
   If ultimo_boton = BtnAbrirEnergia Then
     panelEnergiaIniciado = "Falso"
+    ModoEnergia = "Calcular"
     MostrarVentanaEnergia()
   EndIf
   
@@ -673,11 +678,11 @@ EndSub
 ' =========================================================
 Sub InicializarCalculadoraSist2x2
   GraphicsWindow.Clear()
-  GraphicsWindow.Title = "Calculadora 2x2 Interactiva"
+  GraphicsWindow.Title = "Calculadora 2x2 Interactive"
   GraphicsWindow.Width = 360
   GraphicsWindow.Height = 480
   GraphicsWindow.BackgroundColor = "#1E1E24"
-   
+     
   ' --- DISEÑO DEL VISOR ---
   GraphicsWindow.BrushColor = "#2D3142"
   GraphicsWindow.FillRectangle(20, 20, 320, 80)
@@ -731,7 +736,7 @@ Sub InicializarCalculadoraSist2x2
 
   bNext = Controls.AddButton("SIGUIENTE", 180, 315)
   Controls.SetSize(bNext, 160, 50)
-  
+    
   GraphicsWindow.BrushColor = "gray"
   bVolverSist = Controls.AddButton("VOLVER", 20, 380)
   Controls.SetSize(bVolverSist, 320, 45)
@@ -742,12 +747,12 @@ EndSub
 
 Sub AlPresionarBotonSist2x2
   ultimoBotonSist = Controls.LastClickedButton
-  
+    
   If ultimoBotonSist = bVolverSist Then
     MostrarCalculadoraOriginal()
   Else
     boton = Controls.GetButtonCaption(ultimoBotonSist)
-   
+     
     If boton = "C" Then
       paso = 1
       valorActual = ""
@@ -759,7 +764,7 @@ Sub AlPresionarBotonSist2x2
       sis_f = 0
       Controls.SetButtonCaption(bNext, "SIGUIENTE")
       ActualizarPantallaSist2x2()
-       
+         
     ElseIf boton = "-" Then
       If Text.StartsWith(valorActual, "-") Then
         valorActual = Text.GetSubText(valorActual, 2, Text.GetLength(valorActual))
@@ -767,12 +772,12 @@ Sub AlPresionarBotonSist2x2
         valorActual = "-" + valorActual
       EndIf
       ActualizarPantallaSist2x2()
-       
+         
     ElseIf boton = "SIGUIENTE" Or boton = "RESOLVER" Then
       If valorActual = "" Or valorActual = "-" Then
         valorActual = "0"
       EndIf
-       
+         
       If paso = 1 Then
         sis_a = valorActual
       ElseIf paso = 2 Then
@@ -786,15 +791,15 @@ Sub AlPresionarBotonSist2x2
       ElseIf paso = 6 Then
         sis_f = valorActual
       EndIf
-       
+         
       valorActual = ""
       paso = paso + 1
       ActualizarPantallaSist2x2()
-       
+         
       If paso = 7 Then
         ResolverSistema2x2()
       EndIf
-       
+         
     Else
       If boton <> "VOLVER" Then
         valorActual = Text.Append(valorActual, boton)
@@ -808,7 +813,7 @@ Sub ActualizarPantallaSist2x2
   eq1 = sis_a + "x + " + sis_b + "y = " + sis_c
   eq2 = sis_d + "x + " + sis_e + "y = " + sis_f
   Shapes.SetText(txtEcuaciones, "1) " + eq1 + " | 2) " + eq2)
-   
+     
   If paso = 1 Then
     Shapes.SetText(txtIngreso, "Ingrese a -> " + valorActual)
   ElseIf paso = 2 Then
@@ -828,99 +833,156 @@ EndSub
 
 Sub ResolverSistema2x2
   determinanteSist = (sis_a * sis_e) - (sis_b * sis_d)
-   
+     
   If determinanteSist = 0 Then
     GraphicsWindow.ShowMessage("El sistema no tiene solución única (Determinante = 0)", "Sin Solución")
   Else
     xCrudo = ((sis_c * sis_e) - (sis_b * sis_f)) / determinanteSist
     yCrudo = ((sis_a * sis_f) - (sis_c * sis_d)) / determinanteSist
-     
+       
     solX = Math.Round(xCrudo * 100) / 100
     solY = Math.Round(yCrudo * 100) / 100
-     
+       
     GraphicsWindow.ShowMessage("Solución encontrada:" + Text.GetCharacter(10) + "x = " + solX + Text.GetCharacter(10) + "y = " + solY, "Resultado")
   EndIf
-  
+    
   paso = 1
   valorActual = ""
   ActualizarPantallaSist2x2()
 EndSub
 
 ' =========================================================
-' 6. NUEVO MÓDULO: CALCULADORA DE CONSERVACIÓN DE ENERGÍA
+' 6. MÓDULO ACTUALIZADO: CALCULADORA DE CONSERVACIÓN DE ENERGÍA
 ' =========================================================
 Sub MostrarVentanaEnergia
   GraphicsWindow.Clear()
-  GraphicsWindow.Title = "Conservación de la Energía con Teclado"
-  GraphicsWindow.Width = 650
-  GraphicsWindow.Height = 480
-  GraphicsWindow.BackgroundColor = "LightBlue"
+  GraphicsWindow.Title = "Conservación de la Energía Mecánica"
+  GraphicsWindow.Width = 680
+  GraphicsWindow.Height = 520
+  GraphicsWindow.BackgroundColor = "#EBF4F6"
   
-  ' Cuadros de entrada y etiquetas
+  ' --- COLUMNA IZQUIERDA: VARIABLES ---
   GraphicsWindow.BrushColor = "Black"
   GraphicsWindow.FontSize = 12
-  GraphicsWindow.DrawText(20, 30, "Masa (kg):")
-  txtMasa = Controls.AddTextBox(150, 25)
+  
+  GraphicsWindow.DrawText(20, 25, "Energía Objetivo (J):")
+  txtEngObj = Controls.AddTextBox(150, 20)
+  Controls.SetSize(txtEngObj, 140, 24)
+  
+  GraphicsWindow.DrawText(20, 65, "Masa (kg):")
+  txtMasa = Controls.AddTextBox(150, 60)
+  Controls.SetSize(txtMasa, 140, 24)
 
-  GraphicsWindow.DrawText(20, 70, "Velocidad (m/s):")
-  txtVelocidad = Controls.AddTextBox(150, 65)
+  GraphicsWindow.DrawText(20, 105, "Velocidad (m/s):")
+  txtVelocidad = Controls.AddTextBox(150, 100)
+  Controls.SetSize(txtVelocidad, 140, 24)
 
-  GraphicsWindow.DrawText(20, 110, "Altura (m):")
-  txtAltura = Controls.AddTextBox(150, 105)
+  GraphicsWindow.DrawText(20, 145, "Altura (m):")
+  txtAltura = Controls.AddTextBox(150, 140)
+  Controls.SetSize(txtAltura, 140, 24)
 
-  GraphicsWindow.DrawText(20, 150, "Constante K (N/m):")
-  txtK = Controls.AddTextBox(150, 145)
+  GraphicsWindow.DrawText(20, 185, "Constante K (N/m):")
+  txtK = Controls.AddTextBox(150, 180)
+  Controls.SetSize(txtK, 140, 24)
 
-  GraphicsWindow.DrawText(20, 190, "Deformación X (m):")
-  txtX = Controls.AddTextBox(150, 185)
+  GraphicsWindow.DrawText(20, 225, "Deformación X (m):")
+  txtX = Controls.AddTextBox(150, 220)
+  Controls.SetSize(txtX, 140, 24)
 
-  ' Botón para ejecutar las fórmulas físicas
-  btnCalcular = Controls.AddButton("Calcular Energía Total", 23, 230)
+  ' Botón Principal de Procesamiento
+  GraphicsWindow.BrushColor = "#2E8B57"
+  btnCalcular = Controls.AddButton("PROCESAR SISTEMA", 20, 260)
+  Controls.SetSize(btnCalcular, 270, 35)
 
-  ' Botón para Volver a la calculadora original
+  ' Botón para Volver
   GraphicsWindow.BrushColor = "gray"
-  btnVolverDeEnergia = Controls.AddButton("VOLVER", 70, 370)
-  Controls.SetSize(btnVolverDeEnergia, 145, 30)
+  btnVolverDeEnergia = Controls.AddButton("VOLVER AL MENÚ", 20, 465)
+  Controls.SetSize(btnVolverDeEnergia, 270, 35)
 
-  ' Área para los resultados de energía
-  GraphicsWindow.BrushColor = "DarkBlue"
-  lblResultado = Shapes.AddText("")
-  Shapes.Move(lblResultado, 20, 270)
+  ' Área para los resultados de energía en formato LCD
+  GraphicsWindow.BrushColor = "#0B2F0B"
+  GraphicsWindow.FillRectangle(20, 310, 270, 140)
+  GraphicsWindow.BrushColor = "#00FF00"
+  GraphicsWindow.FontName = "Courier New"
+  lblResultado = Shapes.AddText("Modo: Directo (Em)")
+  Shapes.Move(lblResultado, 30, 320)
   
-  ' Variable para saber en qué cuadro estamos escribiendo (empieza en Masa)
-  CuadroActivo = txtMasa 
+  ' Reestablecer fuentes por defecto para botones
+  GraphicsWindow.FontName = "green"
   
-  ' DIBUJAR EL TECLADO EN PANTALLA (Lado derecho, X >= 350)
+  ' --- COLUMNA DERECHA: TECLADO Y SELECTORES DE ACCIÓN ---
   GraphicsWindow.BrushColor = "Black"
-  GraphicsWindow.DrawText(350, 25, "TECLADO NUMÉRICO TÁCTIL:")
+  GraphicsWindow.DrawText(330, 25, "1. ¿QUÉ DESEAS ENCONTRAR? (IGUALACIÓN)")
   
-  btn7 = Controls.AddButton("7", 350, 60)
-  btn8 = Controls.AddButton("8", 400, 60)
-  btn9 = Controls.AddButton("9", 450, 60)
+  GraphicsWindow.BrushColor = "#4A90E2"
+  btnModoCalc = Controls.AddButton("Calcular Todo (Em)", 330, 45)
+  btnModoM    = Controls.AddButton("Despejar Masa (m)", 500, 45)
+  btnModoV    = Controls.AddButton("Despejar Vel. (v)", 330, 80)
+  btnModoK    = Controls.AddButton("Despejar Const. (k)", 500, 80)
+  btnModoX    = Controls.AddButton("Despejar Defor. (x)", 330, 115)
   
-  btn4 = Controls.AddButton("4", 350, 100)
-  btn5 = Controls.AddButton("5", 400, 100)
-  btn6 = Controls.AddButton("6", 450, 100)
+  Controls.SetSize(btnModoCalc, 160, 30)
+  Controls.SetSize(btnModoM, 160, 30)
+  Controls.SetSize(btnModoV, 160, 30)
+  Controls.SetSize(btnModoK, 160, 30)
+  Controls.SetSize(btnModoX, 160, 30)
   
-  btn1 = Controls.AddButton("1", 350, 140)
-  btn2 = Controls.AddButton("2", 400, 140)
-  btn3 = Controls.AddButton("3", 450, 140)
+  GraphicsWindow.BrushColor = "Black"
+  GraphicsWindow.DrawText(330, 165, "2. SELECCIONA CASILLA PARA ESCRIBIR:")
   
-  btn0 = Controls.AddButton("0", 350, 180)
-  btnPunto = Controls.AddButton(".", 400, 180)
-  btnMenos = Controls.AddButton("-", 450, 180)
+  GraphicsWindow.BrushColor = "#F5A623"
+  selEng = Controls.AddButton("E.Obj", 330, 185)
+  selMasa = Controls.AddButton("Masa", 395, 185)
+  selVel = Controls.AddButton("Velocidad", 460, 185)
+  selAlt = Controls.AddButton("Altura", 540, 185)
+  selK   = Controls.AddButton("Const. K", 330, 220)
+  selX   = Controls.AddButton("Defor. X", 410, 220)
   
-  btnBorrar = Controls.AddButton("Borrar Todo", 350, 220)
-  Controls.SetSize(btnBorrar, 135, 30)
+  Controls.SetSize(selEng, 60, 28)
+  Controls.SetSize(selMasa, 60, 28)
+  Controls.SetSize(selVel, 75, 28)
+  Controls.SetSize(selAlt, 60, 28)
+  Controls.SetSize(selK, 75, 28)
+  Controls.SetSize(selX, 75, 28)
   
-  ' Botones selectores para saber dónde escribir
-  GraphicsWindow.DrawText(350, 275, "Selecciona dónde escribir:")
-  selMasa = Controls.AddButton("Masa", 350, 300)
-  selVel = Controls.AddButton("Velocidad", 410, 300)
-  selAlt = Controls.AddButton("Altura", 495, 300)
-  selK   = Controls.AddButton("Constante K", 350, 340)
-  selX   = Controls.AddButton("Deformación X", 450, 340)
+  ' Teclado Numérico Integrado
+  GraphicsWindow.BrushColor = "green"
+  GraphicsWindow.DrawText(330, 265, "3. TECLADO NUMÉRICO TÁCTIL:")
+  
+  GraphicsWindow.BrushColor = "LightGray"
+  btn7 = Controls.AddButton("7", 330, 285)
+  btn8 = Controls.AddButton("8", 385, 285)
+  btn9 = Controls.AddButton("9", 440, 285)
+  
+  btn4 = Controls.AddButton("4", 330, 330)
+  btn5 = Controls.AddButton("5", 385, 330)
+  btn6 = Controls.AddButton("6", 440, 330)
+  
+  btn1 = Controls.AddButton("1", 330, 375)
+  btn2 = Controls.AddButton("2", 385, 375)
+  btn3 = Controls.AddButton("3", 440, 375)
+  
+  btn0 = Controls.AddButton("0", 330, 420)
+  btnPunto = Controls.AddButton(".", 385, 420)
+  btnMenos = Controls.AddButton("-", 440, 420)
+  
+  btnBorrar = Controls.AddButton("Limpiar Casilla", 330, 465)
+  Controls.SetSize(btnBorrar, 165, 32)
+  
+  Controls.SetSize(btn7, 50, 40)
+  Controls.SetSize(btn8, 50, 40)
+  Controls.SetSize(btn9, 50, 40)
+  Controls.SetSize(btn4, 50, 40)
+  Controls.SetSize(btn5, 50, 40)
+  Controls.SetSize(btn6, 50, 40)
+  Controls.SetSize(btn1, 50, 40)
+  Controls.SetSize(btn2, 50, 40)
+  Controls.SetSize(btn3, 50, 40)
+  Controls.SetSize(btn0, 50, 40)
+  Controls.SetSize(btnPunto, 50, 40)
+  Controls.SetSize(btnMenos, 50, 40)
 
+  CuadroActivo = txtMasa 
   panelEnergiaIniciado = "Verdadero"
   Controls.ButtonClicked = AlHacerClicEnergia
 EndSub
@@ -934,8 +996,28 @@ Sub AlHacerClicEnergia
     MostrarCalculadoraOriginal()
   EndIf
   
-  ' Logica de los selectores de cuadro activo
-  If BotonPresionado = selMasa Then
+  ' Gestión de Cambios de Modo de Despeje Algebraico
+  If BotonPresionado = btnModoCalc Then
+    ModoEnergia = "Calcular"
+    Shapes.SetText(lblResultado, "Modo: Directo (Em)")
+  ElseIf BotonPresionado = btnModoM Then
+    ModoEnergia = "DespejarM"
+    Shapes.SetText(lblResultado, "Modo: Buscar Masa (m)")
+  ElseIf BotonPresionado = btnModoV Then
+    ModoEnergia = "DespejarV"
+    Shapes.SetText(lblResultado, "Modo: Buscar Vel. (v)")
+  ElseIf BotonPresionado = btnModoK Then
+    ModoEnergia = "DespejarK"
+    Shapes.SetText(lblResultado, "Modo: Buscar Const. (k)")
+  ElseIf BotonPresionado = btnModoX Then
+    ModoEnergia = "DespejarX"
+    Shapes.SetText(lblResultado, "Modo: Buscar Defor. (x)")
+  EndIf
+  
+  ' Gestión de Enfoque de Casilla (Foco)
+  If BotonPresionado = selEng Then
+    CuadroActivo = txtEngObj
+  ElseIf BotonPresionado = selMasa Then
     CuadroActivo = txtMasa
   ElseIf BotonPresionado = selVel Then
     CuadroActivo = txtVelocidad
@@ -947,75 +1029,155 @@ Sub AlHacerClicEnergia
     CuadroActivo = txtX
   EndIf
   
-  ' Lógica de las teclas numéricas táctiles
+  ' Entrada del Teclado Táctil
   TextoActual = Controls.GetTextBoxText(CuadroActivo)
-  CarácterPresionado = ""
+  CaracterPresionado = ""
   
   If BotonPresionado = btn1 Then
-    CarácterPresionado = "1"
+    CaracterPresionado = "1"
   ElseIf BotonPresionado = btn2 Then
-    CarácterPresionado = "2"
+    CaracterPresionado = "2"
   ElseIf BotonPresionado = btn3 Then
-    CarácterPresionado = "3"
+    CaracterPresionado = "3"
   ElseIf BotonPresionado = btn4 Then
-    CarácterPresionado = "4"
+    CaracterPresionado = "4"
   ElseIf BotonPresionado = btn5 Then
-    CarácterPresionado = "5"
+    CaracterPresionado = "5"
   ElseIf BotonPresionado = btn6 Then
-    CarácterPresionado = "6"
+    CaracterPresionado = "6"
   ElseIf BotonPresionado = btn7 Then
-    CarácterPresionado = "7"
+    CaracterPresionado = "7"
   ElseIf BotonPresionado = btn8 Then
-    CarácterPresionado = "8"
+    CaracterPresionado = "8"
   ElseIf BotonPresionado = btn9 Then
-    CarácterPresionado = "9"
+    CaracterPresionado = "9"
   ElseIf BotonPresionado = btn0 Then
-    CarácterPresionado = "0"
+    CaracterPresionado = "0"
   ElseIf BotonPresionado = btnPunto Then
-    CarácterPresionado = "."
+    CaracterPresionado = "."
   ElseIf BotonPresionado = btnMenos Then
     If TextoActual = "" Then
-      CarácterPresionado = "-"
+      CaracterPresionado = "-"
     EndIf
   ElseIf BotonPresionado = btnBorrar Then
     Controls.SetTextBoxText(CuadroActivo, "")
   EndIf
   
-  If CarácterPresionado <> "" Then
-    NuevoTexto = Text.Append(TextoActual, CarácterPresionado)
+  If CaracterPresionado <> "" Then
+    NuevoTexto = Text.Append(TextoActual, CaracterPresionado)
     Controls.SetTextBoxText(CuadroActivo, NuevoTexto)
   EndIf
   
-  ' Cálculo de fórmulas físicas
+  ' --- MOTOR DE RESOLUCIÓN FÍSICA Y CONSERVACIÓN ---
   If BotonPresionado = btnCalcular Then
+    g = 9.81
+    
+    ' Obtención preventiva de todas las entradas del formulario
+    E_objetivo = Controls.GetTextBoxText(txtEngObj)
     m = Controls.GetTextBoxText(txtMasa)
     v = Controls.GetTextBoxText(txtVelocidad)
     h = Controls.GetTextBoxText(txtAltura)
     k = Controls.GetTextBoxText(txtK)
     x = Controls.GetTextBoxText(txtX)
     
-    g = 9.81 ' Constante de gravedad
-    
-    ' Fórmulas físicas de energía
-    Ec = 0.5 * m * Math.Power(v, 2)
-    Eg = m * g * h
-    Ee = 0.5 * k * Math.Power(x, 2)
-    Em = Ec + Eg + Ee
-    
-    ' Redondear a dos decimales para una salida limpia
-    Ec = Math.Round(Ec * 100) / 100
-    Eg = Math.Round(Eg * 100) / 100
-    Ee = Math.Round(Ee * 100) / 100
-    Em = Math.Round(Em * 100) / 100
+    ' Validaciones de nulos automáticos para evitar errores aritméticos
+    If E_objetivo = "" Then
+      E_objetivo = 0
+    EndIf
+    If m = "" Then
+      m = 0
+    EndIf
+    If v = "" Then
+      v = 0
+    EndIf
+    If h = "" Then
+      h = 0
+    EndIf
+    If k = "" Then
+      k = 0
+    EndIf
+    If x = "" Then
+      x = 0
+    EndIf
 
-    ' Mostrar reporte en la pantalla
-    TextoResultado = "--- RESULTADOS ---" + Text.GetCharacter(10)
-    TextoResultado = TextoResultado + "E. Cinética (Ec): " + Ec + " J" + Text.GetCharacter(10)
-    TextoResultado = TextoResultado + "E. Gravitacional (Eg): " + Eg + " J" + Text.GetCharacter(10)
-    TextoResultado = TextoResultado + "E. Elástica (Ee): " + Ee + " J" + Text.GetCharacter(10)
-    TextoResultado = TextoResultado + "----------------------------" + Text.GetCharacter(10)
-    TextoResultado = TextoResultado + "Energía Mecánica Total (Em): " + Em + " Joules"
-    
-    Shapes.SetText(lblResultado, TextoResultado)
+    ' Procesamiento según el modo de igualación activo
+    If ModoEnergia = "Calcular" Then
+      Ec = 0.5 * m * Math.Power(v, 2)
+      Eg = m * g * h
+      Ee = 0.5 * k * Math.Power(x, 2)
+      Em = Ec + Eg + Ee
+      
+      ' Redondeos métricos limpios
+      Ec = Math.Round(Ec * 100) / 100
+      Eg = Math.Round(Eg * 100) / 100
+      Ee = Math.Round(Ee * 100) / 100
+      Em = Math.Round(Em * 100) / 100
+      
+      TextoResultado = "Ec: " + Ec + " J" + Text.GetCharacter(10)
+      TextoResultado = TextoResultado + "Eg: " + Eg + " J" + Text.GetCharacter(10)
+      TextoResultado = TextoResultado + "Ee: " + Ee + " J" + Text.GetCharacter(10)
+      TextoResultado = TextoResultado + "Em Total: " + Em + " J"
+      GraphicsWindow.ShowMessage(TextoResultado, "Cálculo de Energías Exitoso")
+      
+    ElseIf ModoEnergia = "DespejarM" Then
+      ' E_total - Ee = m * (0.5*v^2 + g*h)
+      Ee = 0.5 * k * Math.Power(x, 2)
+      FactorMasa = (0.5 * Math.Power(v, 2)) + (g * h)
+      
+      If FactorMasa = 0 Then
+        GraphicsWindow.ShowMessage("Imposible despejar: v y h son cero simultáneamente.", "Error Físico")
+      Else
+        m_despejada = (E_objetivo - Ee) / FactorMasa
+        m_despejada = Math.Round(m_despejada * 100) / 100
+        Controls.SetTextBoxText(txtMasa, m_despejada)
+        GraphicsWindow.ShowMessage("Masa encontrada e insertada: " + m_despejada + " kg", "Conservación de Energía")
+      EndIf
+      
+    ElseIf ModoEnergia = "DespejarV" Then
+      Eg = m * g * h
+      Ee = 0.5 * k * Math.Power(x, 2)
+      ArgumentoV = (2 * (E_objetivo - Eg - Ee)) / m
+      
+      If m <= 0 Then
+        GraphicsWindow.ShowMessage("Error: La masa debe ser mayor a 0 para buscar velocidad.", "Falta de Datos")
+      ElseIf ArgumentoV < 0 Then
+        GraphicsWindow.ShowMessage("Inconsistencia: La energía remanente es negativa para el estado.", "Error Físico")
+      Else
+        v_despejada = Math.SquareRoot(ArgumentoV)
+        v_despejada = Math.Round(v_despejada * 100) / 100
+        Controls.SetTextBoxText(txtVelocidad, v_despejada)
+        GraphicsWindow.ShowMessage("Velocidad encontrada: " + v_despejada + " m/s", "Conservación de Energía")
+      EndIf
+      
+    ElseIf ModoEnergia = "DespejarK" Then
+      If x = 0 Then
+        GraphicsWindow.ShowMessage("Error: La deformación X no puede ser 0 para despejar K.", "Falta de Datos")
+      Else
+        Ec = 0.5 * m * Math.Power(v, 2)
+        Eg = m * g * h
+        k_despejada = (2 * (E_objetivo - Ec - Eg)) / Math.Power(x, 2)
+        k_despejada = Math.Round(k_despejada * 100) / 100
+        Controls.SetTextBoxText(txtK, k_despejada)
+        GraphicsWindow.ShowMessage("Constante elástica K: " + k_despejada + " N/m", "Conservación de Energía")
+      EndIf
+      
+    ElseIf ModoEnergia = "DespejarX" Then
+      If k <= 0 Then
+        GraphicsWindow.ShowMessage("Error: Requiere constante K mayor a cero.", "Falta de Datos")
+      Else
+        Ec = 0.5 * m * Math.Power(v, 2)
+        Eg = m * g * h
+        ArgumentoX = (2 * (E_objetivo - Ec - Eg)) / k
+        
+        If ArgumentoX < 0 Then
+          GraphicsWindow.ShowMessage("La energía del sistema ya está saturada por Ec y Eg.", "Límite Físico")
+        Else
+          x_despejada = Math.SquareRoot(ArgumentoX)
+          x_despejada = Math.Round(x_despejada * 100) / 100
+          Controls.SetTextBoxText(txtX, x_despejada)
+          GraphicsWindow.ShowMessage("Compresión del resorte X: " + x_despejada + " m", "Conservación de Energía")
+        EndIf
+      EndIf
+    EndIf
   EndIf
 EndSub
